@@ -1,5 +1,6 @@
 package com.swoo.fitlog.api.domain.auth.service;
 
+import com.swoo.fitlog.exception.ExpiredOtpException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -33,6 +34,30 @@ public class OtpService {
 
         log.debug("[KEY][{}]", redisTemplate.opsForValue().get(key));
         return otp;
+    }
+
+    /**
+     * 인증 번호의 유효성을 검사한다.
+     *
+     * @param email 인증 번호를 전송한 이메일
+     * @param otp 이메일에 전송된 인증 번호
+     * @return true - 인증 번호가 일치하면 true를 반환한다.<br>
+     * false - 인증 번호가 일치하지 않으면 false를 반환한다.
+     * @throws ExpiredOtpException 매개 변수로 받은 otp가 만료된 인증 번호라면 해당 예외를 던진다.
+     * */
+    public boolean verifyOTP(String email, int otp) {
+        String key = createKey(email);
+
+        Integer savedOTP = redisTemplate.opsForValue().getAndDelete(key);
+
+        /*
+         * 반환된 인증 번호가 null이라면 만료된 인증 번호로 간주하고 ExpiredOtpException 예외 던지기
+         * */
+        if (savedOTP == null) {
+            throw new ExpiredOtpException("만료된 인증 번호");
+        }
+
+        return otp == savedOTP;
     }
 
     /*

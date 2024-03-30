@@ -1,7 +1,7 @@
 package com.swoo.fitlog.exception;
 
-import com.swoo.fitlog.utils.ErrorCodeUtil;
 import com.swoo.fitlog.http.ErrorResponse;
+import com.swoo.fitlog.utils.ErrorCodeUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -41,6 +41,20 @@ public class GlobalExceptionHandler {
 
         ErrorResponse errorResponse =
                 ErrorResponse.of(400, HttpStatus.BAD_REQUEST,"예기치 않은 오류가 발생했습니다.", errorCodes);
+
+        return new ResponseEntity<>(errorResponse, errorResponse.getHttpStatus());
+    }
+
+    @ExceptionHandler(ExpiredOtpException.class)
+    public ResponseEntity<Object> ExpiredOtpException(ExpiredOtpException exception) {
+        log.error("[ERROR][ExpiredOtpException][{}]", exception.getMessage());
+
+        ErrorResponse errorResponse = ErrorResponse.of(
+                400,
+                HttpStatus.BAD_REQUEST,
+                "예기치 않은 오류가 발생했습니다.",
+                Set.of(ErrorCodeUtil.OTP_EXPIRED_TIME.getErrorCode())
+        );
 
         return new ResponseEntity<>(errorResponse, errorResponse.getHttpStatus());
     }
