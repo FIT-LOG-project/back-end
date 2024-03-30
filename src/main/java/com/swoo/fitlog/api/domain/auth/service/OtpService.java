@@ -60,6 +60,23 @@ public class OtpService {
         return otp == savedOTP;
     }
 
+    /**
+     * 인증 번호의 남은 시간을 조회한다.
+     * @param email 인증 번호를 찾기 위해 Key로 사용되는 이메일
+     * @return 분을 초로 변환한 값을 반환한다.  예) 5분 = 300초
+     * @throws ExpiredOtpException 이미 만료된 인증 번호라면 해당 예외를 던진다.
+     */
+    public Long getExpiration(String email) {
+        String key = createKey(email);
+        Long expire = redisTemplate.getExpire(key, TimeUnit.SECONDS);
+
+        if (expire == null || expire < 0) {
+            throw new ExpiredOtpException("만료된 인증 번호");
+        }
+
+        return expire;
+    }
+
     /*
      * key 생성
      * */

@@ -1,6 +1,7 @@
 package com.swoo.fitlog.api.domain.auth;
 
 import com.swoo.fitlog.api.domain.auth.dto.EmailDto;
+import com.swoo.fitlog.api.domain.auth.dto.ExpireDto;
 import com.swoo.fitlog.api.domain.auth.dto.OtpDto;
 import com.swoo.fitlog.api.domain.auth.service.MailSendService;
 import com.swoo.fitlog.api.domain.auth.service.OtpService;
@@ -13,9 +14,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Set;
 
@@ -87,5 +86,40 @@ public class AuthController {
                 .of(200, HttpStatus.OK, "이메일 인증 성공", null);
 
         return new ResponseEntity<>(restResponse, restResponse.getHttpStatus());
+    }
+
+    /**
+     * 인증 번호의 남은 시간을 조회하는 API
+     *
+     * @param email 인증 번호의 남은 시간을 조회가기 위해 사용되는 key
+     * @return 조회 성공<br>
+     * 남은 시간을 반환한다. <br><br>
+     * 조회 실패 <br>
+     * 아래의 에러 코드를 반환한다.<br>
+     *  에러 코드: 10(잘못된 이메일 형식)<br>
+     *  에러 코드: 71(이미 만료된 인증 번호)
+     * @throws com.swoo.fitlog.exception.ExpiredOtpException 이미 만료된 인증 번호라면 해당 예외가 발생한다.
+     */
+    @GetMapping("/api/v1/auth/locals/email/expiration")
+    public ResponseEntity<Object> sendExpirationTime(@RequestParam("email") String email) {
+
+        // Email 형식 체크
+        if (!email.matches("[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}")) {
+            ErrorResponse errorResponse = ErrorResponse.of(
+                    400,
+                    HttpStatus.BAD_REQUEST,
+                    "예기치 않은 오류가 발생했습니다",
+                    Set.of(10)
+            );
+
+            return new ResponseEntity<>(errorResponse, errorResponse.getHttpStatus());
+        }
+
+        Long expiration = otpService.getExpiration(email);
+
+        RestResponse<Object> restResponse =
+                RestResponse.of(200, HttpStatus.OK, "유효 시간 획득 성공", ExpireDto.from(expiration));
+
+        return new ResponseEntity<>(restResponse, HttpStatus.OK);
     }
 }
