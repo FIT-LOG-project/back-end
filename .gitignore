@@ -18,6 +18,9 @@ bin/
 !**/src/test/**/bin/
 
 ### IntelliJ IDEA ###
+application-security.properties
+
+>>>>>>> cd83cb4 (setting: application-security.properties 추가)
 .idea
 *.iws
 *.iml
