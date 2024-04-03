@@ -1,11 +1,13 @@
 package com.swoo.fitlog.api.domain.auth.service;
 
 import com.swoo.fitlog.exception.ExpiredOtpException;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
@@ -71,5 +73,25 @@ class OtpServiceTest {
         // then
         Long expiration = otpService.getExpiration(mail);
         assertTrue(expiration > 0);
+    }
+
+    @Test
+    @DisplayName("일치하지 않는 인증 번호 입력 후 올바른 인증 번호를 입력 했을 때 인증 성공")
+    void inputNotSameOtpAndInputSameOtp() {
+        // given
+        String mail = "test@example.com";
+        int incorrectOtp = 111111;
+
+        // when
+        int otp = otpService.generateAndSaveOTP(mail);
+
+        if (otp == incorrectOtp) {
+            incorrectOtp = 111112;
+        }
+
+        otpService.verifyOTP(mail, incorrectOtp);
+
+        // then
+        assertThat(otpService.verifyOTP(mail, otp)).isTrue();
     }
 }
