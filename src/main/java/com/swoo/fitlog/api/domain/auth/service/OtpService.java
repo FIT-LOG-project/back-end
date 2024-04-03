@@ -48,7 +48,7 @@ public class OtpService {
     public boolean verifyOTP(String email, int otp) {
         String key = createKey(email);
 
-        Integer savedOTP = redisTemplate.opsForValue().getAndDelete(key);
+        Integer savedOTP = redisTemplate.opsForValue().get(key);
 
         /*
          * 반환된 인증 번호가 null이라면 만료된 인증 번호로 간주하고 ExpiredOtpException 예외 던지기
@@ -57,7 +57,12 @@ public class OtpService {
             throw new ExpiredOtpException("만료된 인증 번호");
         }
 
-        return otp == savedOTP;
+        if (savedOTP == otp) {
+            redisTemplate.delete(key);
+            return true;
+        }
+
+        return false;
     }
 
     /**
