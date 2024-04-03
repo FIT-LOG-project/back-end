@@ -6,7 +6,11 @@ import lombok.Getter;
 public enum ErrorCodeUtil {
 
     EMAIL(10),
+    EMAIL_DUPLICATE(11),
     PASSWORD(20),
+    PASSWORD_EXPIRED_TIME(21),
+    PASSWORD_FAIL_AUTH(22),
+    PASSWORD_NEW_NOT_AGREEMENT(23),
     OTP(70),
     OTP_EXPIRED_TIME(71),
     OTP_NOT_AGREEMENT(72);
