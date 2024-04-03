@@ -5,6 +5,8 @@ import com.swoo.fitlog.api.domain.auth.dto.ExpireDto;
 import com.swoo.fitlog.api.domain.auth.dto.OtpDto;
 import com.swoo.fitlog.api.domain.auth.service.MailSendService;
 import com.swoo.fitlog.api.domain.auth.service.OtpService;
+import com.swoo.fitlog.api.domain.auth.service.PasswordAuthService;
+import com.swoo.fitlog.api.domain.user.dto.UserDto;
 import com.swoo.fitlog.http.ErrorResponse;
 import com.swoo.fitlog.http.RestResponse;
 import com.swoo.fitlog.utils.ErrorCodeUtil;
@@ -25,6 +27,7 @@ public class AuthController {
 
     private final MailSendService mailSendService;
     private final OtpService otpService;
+    private final PasswordAuthService passwordAuthService;
 
     /*
         이메일 수신 후 인증 번호 발송
@@ -121,5 +124,59 @@ public class AuthController {
                 RestResponse.of(200, HttpStatus.OK, "유효 시간 획득 성공", ExpireDto.from(expiration));
 
         return new ResponseEntity<>(restResponse, HttpStatus.OK);
+    }
+
+    /**
+     * 회원 가입을 위해 입력한 비밀 번호의 유효성을 검사하고 임시로 저장하는 API
+     * @param passwordDto 클라이언트에게 받은 데이터 전송 객체
+     * @return 성공<br>
+     * 아무 데이터도 반환하지 않는다.<br><br>
+     * 실패<br>
+     * 아래의 에러 코드를 반환한다.<br>
+     * 에러 코드: 10(잘못된 이메일 형식)<br>
+     * 에러 코드: 20(잘못된 비밀 번호 형식)
+     */
+    @PostMapping("/api/v1/auth/locals/password")
+    public ResponseEntity<Object> verifyPassword(@RequestBody @Valid UserDto passwordDto) {
+        String email = passwordDto.getEmail();
+        String password = passwordDto.getPassword();
+
+        passwordAuthService.saveTemporaryPassword(email, password);
+
+        RestResponse<Object> restResponse =
+                RestResponse.of(200, HttpStatus.OK, "비밀 번호 유효성 검사 성공", null);
+
+        return new ResponseEntity<>(restResponse, restResponse.getHttpStatus());
+    }
+
+    /**
+     * 신규 가입 시 비밀 번호를 재확인 하는 API
+     * @param reconfirmDto 클라이언트에게 이메일과 재확인 비밀 번호를 받는 데이터 전송 객체
+     * @return 실패<br>
+     * 아래의 에러 코드를 반환한다.<br>
+     * 에러 코드: 20(잘못된 비밀 번호 형식)<br>
+     * 에러 코드: 21(만료된 비밀 번호)<br>
+     * 에러 코드: 23(일치하지 않는 재확인 비밀 번호)<br>
+     */
+    @PostMapping("/api/v1/auth/locals/password/reconfirmation")
+    public ResponseEntity<Object> reconfirmPassword(@RequestBody @Valid UserDto reconfirmDto) {
+        String email = reconfirmDto.getEmail();
+        String reconfirmPassword = reconfirmDto.getPassword();
+
+        if (!passwordAuthService.certifyPassword(email, reconfirmPassword)) {
+            ErrorResponse errorResponse = ErrorResponse.of(
+                    400,
+                    HttpStatus.BAD_REQUEST,
+                    "예기치 않은 오류가 발생했습니다.",
+                    Set.of(ErrorCodeUtil.PASSWORD_NEW_NOT_AGREEMENT.getErrorCode())
+            );
+
+            return new ResponseEntity<>(errorResponse, errorResponse.getHttpStatus());
+        }
+
+        RestResponse<Object> restResponse =
+                RestResponse.of(200, HttpStatus.OK, "비밀 번호 확인 성공", null);
+
+        return new ResponseEntity<>(restResponse, restResponse.getHttpStatus());
     }
 }

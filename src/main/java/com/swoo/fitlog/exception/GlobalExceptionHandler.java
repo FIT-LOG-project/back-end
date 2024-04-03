@@ -58,4 +58,23 @@ public class GlobalExceptionHandler {
 
         return new ResponseEntity<>(errorResponse, errorResponse.getHttpStatus());
     }
+
+    /**
+     * 회원 가입 시 비밀 번호 재확인을 위해 저장된 임시 비밀 번호가 만료된 경우 발생한 예외를 처리한다.
+     * @param exception 만료된 비밀 번호로 발생한 ExpiredPasswordException 예외
+     * @return 에러코드: 21(만료된 비밀 번호)
+     */
+    @ExceptionHandler(ExpiredPasswordException.class)
+    public ResponseEntity<Object> ExpiredPasswordException(ExpiredPasswordException exception) {
+        log.error("[ERROR][ExpiredPasswordException][{}]", exception.getMessage());
+
+        ErrorResponse errorResponse = ErrorResponse.of(
+                400,
+                HttpStatus.BAD_REQUEST,
+                "예기치 않은 오류가 발생했습니다.",
+                Set.of(ErrorCodeUtil.PASSWORD_EXPIRED_TIME.getErrorCode())
+        );
+
+        return new ResponseEntity<>(errorResponse, errorResponse.getHttpStatus());
+    }
 }
