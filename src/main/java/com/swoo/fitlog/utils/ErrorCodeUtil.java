@@ -5,6 +5,7 @@ import lombok.Getter;
 @Getter
 public enum ErrorCodeUtil {
 
+    NOT_EXIST_MEMBER(1),
     EMAIL(10),
     EMAIL_DUPLICATE(11),
     PASSWORD(20),

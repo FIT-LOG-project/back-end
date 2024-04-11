@@ -19,6 +19,8 @@ bin/
 
 ### IntelliJ IDEA ###
 application-security.properties
+test/resources/application.properties
+test/resources/schema.sql
 
 >>>>>>> cd83cb4 (setting: application-security.properties 추가)
 .idea
