@@ -6,7 +6,9 @@ import com.swoo.fitlog.api.domain.auth.dto.OtpDto;
 import com.swoo.fitlog.api.domain.auth.service.MailSendService;
 import com.swoo.fitlog.api.domain.auth.service.OtpService;
 import com.swoo.fitlog.api.domain.auth.service.PasswordAuthService;
-import com.swoo.fitlog.api.domain.user.dto.UserDto;
+import com.swoo.fitlog.api.domain.user.dto.MemberDto;
+import com.swoo.fitlog.api.domain.user.repository.JdbcMemberRepository;
+import com.swoo.fitlog.api.domain.user.repository.MemberRepository;
 import com.swoo.fitlog.http.ErrorResponse;
 import com.swoo.fitlog.http.RestResponse;
 import com.swoo.fitlog.utils.ErrorCodeUtil;
@@ -28,6 +30,7 @@ public class AuthController {
     private final MailSendService mailSendService;
     private final OtpService otpService;
     private final PasswordAuthService passwordAuthService;
+    private final MemberRepository memberRepository;
 
     /*
         이메일 수신 후 인증 번호 발송
@@ -37,6 +40,9 @@ public class AuthController {
 
         String email = emailDto.getEmail();
         log.debug("[E-mail]=[{}]", email);
+
+        JdbcMemberRepository jdbcMemberRepository = (JdbcMemberRepository) memberRepository;
+        jdbcMemberRepository.checkEmailExists(email);
 
         mailSendService.send(email);
 
@@ -137,7 +143,7 @@ public class AuthController {
      * 에러 코드: 20(잘못된 비밀 번호 형식)
      */
     @PostMapping("/api/v1/auth/locals/password")
-    public ResponseEntity<Object> verifyPassword(@RequestBody @Valid UserDto passwordDto) {
+    public ResponseEntity<Object> verifyPassword(@RequestBody @Valid MemberDto passwordDto) {
         String email = passwordDto.getEmail();
         String password = passwordDto.getPassword();
 
@@ -159,7 +165,7 @@ public class AuthController {
      * 에러 코드: 23(일치하지 않는 재확인 비밀 번호)<br>
      */
     @PostMapping("/api/v1/auth/locals/password/reconfirmation")
-    public ResponseEntity<Object> reconfirmPassword(@RequestBody @Valid UserDto reconfirmDto) {
+    public ResponseEntity<Object> reconfirmPassword(@RequestBody @Valid MemberDto reconfirmDto) {
         String email = reconfirmDto.getEmail();
         String reconfirmPassword = reconfirmDto.getPassword();
 
