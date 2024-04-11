@@ -48,7 +48,7 @@ public class JdbcMemberRepository implements MemberRepository {
 
     @Override
     public Member findById(Long id) {
-        String sql = "select id, email, password, nick_name from members where id=:id";
+        String sql = "select id, email, password, status from members where id=:id";
 
         MapSqlParameterSource param = new MapSqlParameterSource().addValue("id", id);
 
