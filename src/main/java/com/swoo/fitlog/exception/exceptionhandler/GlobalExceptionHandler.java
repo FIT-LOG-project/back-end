@@ -1,5 +1,7 @@
-package com.swoo.fitlog.exception;
+package com.swoo.fitlog.exception.exceptionhandler;
 
+import com.swoo.fitlog.exception.ExpiredOtpException;
+import com.swoo.fitlog.exception.ExpiredPasswordException;
 import com.swoo.fitlog.http.ErrorResponse;
 import com.swoo.fitlog.utils.ErrorCodeUtil;
 import lombok.RequiredArgsConstructor;

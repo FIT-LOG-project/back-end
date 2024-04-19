@@ -1,5 +1,7 @@
-package com.swoo.fitlog.exception;
+package com.swoo.fitlog.exception.exceptionhandler;
 
+import com.swoo.fitlog.exception.DuplicatedEmailException;
+import com.swoo.fitlog.exception.NotExistMemberException;
 import com.swoo.fitlog.http.ErrorResponse;
 import com.swoo.fitlog.utils.ErrorCodeUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -33,8 +35,8 @@ public class DataExceptionHandler {
         log.error("[ERROR][NoExistMemberException][{}]", exception.getMessage());
 
         ErrorResponse errorResponse = ErrorResponse.of(
-                204,
-                HttpStatus.NO_CONTENT,
+                404,
+                HttpStatus.NOT_FOUND,
                 "예기치 않은 오류가 발생했습니다.",
                 Set.of(ErrorCodeUtil.NOT_EXIST_MEMBER.getErrorCode())
         );

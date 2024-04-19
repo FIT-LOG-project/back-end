@@ -60,6 +60,19 @@ public class JdbcMemberRepository implements MemberRepository {
     }
 
     @Override
+    public Member findByEmail(String email) {
+        String sql = "select id, email, password, status from members where email=:email";
+
+        MapSqlParameterSource param = new MapSqlParameterSource().addValue("email", email);
+
+        try {
+            return jdbcTemplate.queryForObject(sql, param, memberRowMapper());
+        } catch (EmptyResultDataAccessException e) {
+            throw new NotExistMemberException("존재하지 않는 회원을 요청했습니다.");
+        }
+    }
+
+    @Override
     public List<Member> findAll() {
         String sql = "select id, email, password, nick_name from members";
 
