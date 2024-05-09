@@ -8,7 +8,9 @@ import com.swoo.fitlog.utils.ErrorCodeUtil;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.security.SignatureException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -56,7 +58,7 @@ public class JwtExceptionHandler {
                 401,
                 HttpStatus.UNAUTHORIZED,
                 "예기치 않은 오류가 발생했습니다.",
-                Set.of(ErrorCodeUtil.INCORRECT_ACCESS_TOKEN.getErrorCode())
+                Set.of(ErrorCodeUtil.INCORRECT_TOKEN.getErrorCode())
         );
 
         return new ResponseEntity<>(errorResponse, errorResponse.getHttpStatus());
@@ -80,13 +82,24 @@ public class JwtExceptionHandler {
     public ResponseEntity<ErrorResponse> TokenSecurityException(TokenSecurityException exception) {
         log.error("[ERROR][TokenSecurityException][{}]", exception.getMessage());
 
+        ResponseCookie deletedRefreshTokenCookie = ResponseCookie.from("RefreshToken", "")
+                .path("/api/v1/auth/refresh-token")
+                .sameSite("none")
+                .secure(true)
+                .httpOnly(true)
+                .maxAge(0)
+                .build();
+
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.add(HttpHeaders.SET_COOKIE, deletedRefreshTokenCookie.toString());
+
         ErrorResponse errorResponse = ErrorResponse.of(
                 401,
                 HttpStatus.UNAUTHORIZED,
                 "예기치 않은 오류가 발생했습니다.",
-                Set.of(ErrorCodeUtil.REQUEST_LOGIN.getErrorCode())
+                Set.of(ErrorCodeUtil.INCORRECT_TOKEN.getErrorCode())
         );
 
-        return new ResponseEntity<>(errorResponse, errorResponse.getHttpStatus());
+        return new ResponseEntity<>(errorResponse, httpHeaders, errorResponse.getHttpStatus());
     }
 }
