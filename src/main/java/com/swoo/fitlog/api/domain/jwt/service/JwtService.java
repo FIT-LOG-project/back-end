@@ -1,7 +1,7 @@
 package com.swoo.fitlog.api.domain.jwt.service;
 
-import com.swoo.fitlog.api.domain.user.dto.MemberDto;
 import com.swoo.fitlog.api.domain.jwt.JwtTokenProvider;
+import com.swoo.fitlog.api.domain.user.dto.MemberDto;
 import com.swoo.fitlog.exception.IncorrectRefreshTokenException;
 import com.swoo.fitlog.exception.ReissueAccessTokenException;
 import com.swoo.fitlog.exception.TokenSecurityException;
@@ -11,6 +11,7 @@ import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.stereotype.Service;
+import java.time.Duration;
 
 @Service
 @RequiredArgsConstructor
@@ -71,13 +72,17 @@ public class JwtService {
     private void addRefreshTokenToCookie(HttpHeaders httpHeaders, String email) {
         String refreshToken = refreshTokenService.findOrIssueRefreshToken(email);
 
+        Long refreshTokenExpiredTime = jwtTokenProvider.getTokenExpiredTime(refreshToken);
+        Duration duration = Duration.ofMinutes(refreshTokenExpiredTime);
+
         ResponseCookie refreshTokenCookie = ResponseCookie.from("RefreshToken", refreshToken)
                 .path("/api/v1/auth/refresh-token")
+                .sameSite("none")
+                .secure(true)
                 .httpOnly(true)
+                .maxAge(duration)
                 .build();
 
         httpHeaders.add(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString());
     }
 }
-
-
