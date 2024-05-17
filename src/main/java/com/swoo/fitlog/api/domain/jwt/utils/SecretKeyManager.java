@@ -1,4 +1,4 @@
-package com.swoo.fitlog.api.domain.jwt;
+package com.swoo.fitlog.api.domain.jwt.utils;
 
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;

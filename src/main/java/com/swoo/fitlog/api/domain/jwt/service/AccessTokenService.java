@@ -1,7 +1,7 @@
 package com.swoo.fitlog.api.domain.jwt.service;
 
-import com.swoo.fitlog.api.domain.jwt.JwtTokenProvider;
 import com.swoo.fitlog.api.domain.jwt.repository.AccessTokenRepository;
+import com.swoo.fitlog.api.domain.jwt.utils.TokenProvider;
 import com.swoo.fitlog.exception.LogoutTokenException;
 import com.swoo.fitlog.exception.ReissueAccessTokenException;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -16,25 +16,28 @@ import org.springframework.stereotype.Service;
 public class AccessTokenService {
 
     private final AccessTokenRepository accessTokenRepository;
-    private final JwtTokenProvider jwtTokenProvider;
+    private final TokenProvider tokenProvider;
+
+    public String generateAccessToken(String accessToken) {
+        return tokenProvider.generateAccessToken(accessToken);
+    }
 
     /**
      * Access Token을 로그아웃 처리한다.
      * @param accessToken 로그아웃 처리를 하기위한 Access Token
      */
     public void logout(String accessToken) {
-        Long accessTokenExpiredTime = jwtTokenProvider.getTokenExpiredTime(accessToken);
+        Long accessTokenExpiredTime = tokenProvider.extractTokenExpiredTime(accessToken);
         accessTokenRepository.save(accessToken, accessTokenExpiredTime);
     }
 
     /**
      * 유효한 Access Token 인지 검증한다.
      * @param accessToken 검증이 필요한 Access Token
-     * @return 검증에 성공하면 <code>true</code>
      */
-    public boolean verifyAccessToken(String accessToken) {
-        checkLogoutAccessToken(accessToken);
-        return jwtTokenProvider.verifyAccessToken(accessToken);
+    public void verifyAccessToken(String accessToken) {
+        isLogoutAccessToken(accessToken);
+        tokenProvider.verifyAccessToken(accessToken);
     }
 
     /**
@@ -43,7 +46,7 @@ public class AccessTokenService {
      * @return <code>String</code> Access Token Payload에서 찾은 이메일
      */
     public String getEmail(String accessToken) {
-        return jwtTokenProvider.extractEmailAndVerifyToken(accessToken);
+        return tokenProvider.extractEmailAndVerifyToken(accessToken);
     }
 
     /**
@@ -58,14 +61,11 @@ public class AccessTokenService {
      */
     public void verifyAccessTokenForReissue(String accessToken) {
         try {
-            jwtTokenProvider.verifyAccessToken(accessToken);
-            throw new ReissueAccessTokenException(
-                    "만료되지 않은 Access Token 재발급 요청");
+            tokenProvider.verifyAccessToken(accessToken);
         } catch (ExpiredJwtException e) {
             log.info("[INFO][Access Token 만료 확인][재발급 진행]");
         } catch (SignatureException e) {
-            throw new ReissueAccessTokenException(
-                    "만료되지 않은 Access Token 재발급 요청");
+            throw new ReissueAccessTokenException("만료되지 않은 Access Token 재발급 요청");
         }
     }
 
@@ -74,7 +74,7 @@ public class AccessTokenService {
      * @param accessToken 로그아웃 처리된 토큰인지 확인하기 위한 Access Token
      * @throws LogoutTokenException 로그 아웃 처리된 토큰이 매개 변수로 들어오면 해당 예외가 발생한다.
      */
-    private void checkLogoutAccessToken(String accessToken) {
+    private void isLogoutAccessToken(String accessToken) {
         String findAccessToken = accessTokenRepository.findAccessToken(accessToken);
 
         if (findAccessToken != null) {
