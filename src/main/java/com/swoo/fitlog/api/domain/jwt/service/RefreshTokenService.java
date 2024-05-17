@@ -1,7 +1,7 @@
 package com.swoo.fitlog.api.domain.jwt.service;
 
-import com.swoo.fitlog.api.domain.jwt.JwtTokenProvider;
 import com.swoo.fitlog.api.domain.jwt.repository.RefreshTokenRepository;
+import com.swoo.fitlog.api.domain.jwt.utils.TokenProvider;
 import com.swoo.fitlog.exception.IncorrectRefreshTokenException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,8 +13,7 @@ import org.springframework.stereotype.Service;
 public class RefreshTokenService {
 
     private final RefreshTokenRepository refreshTokenRepository;
-    private final JwtTokenProvider jwtTokenProvider;
-
+    private final TokenProvider tokenProvider;
 
     /**
      * Refresh Token을 조회하고, 이메일에 맞는 Refresh Token이 존재하지 않으면 신규 발급
@@ -30,17 +29,13 @@ public class RefreshTokenService {
         * 새로운 refresh token을 발급하고 저장한다.
         * */
         if (refreshToken == null) {
-            refreshToken = jwtTokenProvider.generateRefreshToken();
-            refreshTokenRepository.save(email, refreshToken, jwtTokenProvider.getTokenExpiredTime(refreshToken));
-            return refreshToken;
+            return issueRefreshToken(email);
         }
 
         /* refresh token 유효기간이 얼마 남지 않은 경우 기존의 refresh token을 삭제 후 재발급을 진행한다. */
-        if (jwtTokenProvider.verifyRefreshTokenExpiredForReIssuance(refreshToken)) {
+        if (tokenProvider.verifyRefreshTokenExpiredForReIssuance(refreshToken)) {
             refreshTokenRepository.deleteRefreshToken(email);
-
-            refreshToken = jwtTokenProvider.generateRefreshToken();
-            refreshTokenRepository.save(email, refreshToken, jwtTokenProvider.getTokenExpiredTime(refreshToken));
+            return issueRefreshToken(email);
         }
 
         return refreshToken;
@@ -67,5 +62,16 @@ public class RefreshTokenService {
 
     public void deleteRefreshToken(String email) {
         refreshTokenRepository.deleteRefreshToken(email);
+    }
+
+    public Long getRefreshTokenExpiredTime(String refreshToken) {
+        return tokenProvider.extractTokenExpiredTime(refreshToken);
+    }
+
+    private String issueRefreshToken(String email) {
+        String refreshToken;
+        refreshToken = tokenProvider.generateRefreshToken();
+        refreshTokenRepository.save(email, refreshToken, tokenProvider.extractTokenExpiredTime(refreshToken));
+        return refreshToken;
     }
 }

@@ -1,4 +1,4 @@
-package com.swoo.fitlog.api.domain.jwt;
+package com.swoo.fitlog.api.domain.jwt.utils;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
@@ -14,7 +14,7 @@ import java.util.Date;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class JwtTokenProvider {
+public class TokenProvider {
 
     /**
      * Access Token의 만료 시간, 기본 30분
@@ -86,14 +86,12 @@ public class JwtTokenProvider {
     /**
      * 올바른 Access Token 인지 검증한다.
      * @param accessToken 검증 하려는 Access Token
-     * @return 검증에 성공하면 <code>true</code> 반환
      *
      * @throws io.jsonwebtoken.ExpiredJwtException 토큰의 만료 시간이 종료되었다면 해당 예외가 발생한다.
      * @throws io.jsonwebtoken.security.SignatureException secretkey로 검증에 실패했다면 해당 예외가 발생한다.
      */
-    public boolean verifyAccessToken(String accessToken) {
+    public void verifyAccessToken(String accessToken) {
         extractClaimsAndVerifyToken(accessToken);
-        return true;
     }
 
     /**
@@ -115,7 +113,7 @@ public class JwtTokenProvider {
      * @throws io.jsonwebtoken.ExpiredJwtException 토큰의 만료 시간이 종료되었다면 해당 예외가 발생한다.
      * @throws io.jsonwebtoken.security.SignatureException secretkey로 검증에 실패했다면 해당 예외가 발생한다.
      */
-    public Long getTokenExpiredTime(String token) {
+    public Long extractTokenExpiredTime(String token) {
         Jws<Claims> claimsJws = extractClaimsAndVerifyToken(token);
         return claimsJws.getPayload().getExpiration().getTime();
     }

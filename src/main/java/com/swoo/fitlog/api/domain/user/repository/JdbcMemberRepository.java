@@ -48,7 +48,7 @@ public class JdbcMemberRepository implements MemberRepository {
 
     @Override
     public Member findById(Long id) {
-        String sql = "select id, email, password, status from members where id=:id";
+        String sql = "select id, email, password, nickname, status from members where id=:id";
 
         MapSqlParameterSource param = new MapSqlParameterSource().addValue("id", id);
 
@@ -61,7 +61,7 @@ public class JdbcMemberRepository implements MemberRepository {
 
     @Override
     public Member findByEmail(String email) {
-        String sql = "select id, email, password, status from members where email=:email";
+        String sql = "select id, email, password, nickname, status from members where email=:email";
 
         MapSqlParameterSource param = new MapSqlParameterSource().addValue("email", email);
 
@@ -74,7 +74,7 @@ public class JdbcMemberRepository implements MemberRepository {
 
     @Override
     public List<Member> findAll() {
-        String sql = "select id, email, password, nick_name from members";
+        String sql = "select id, email, nickname, status from members";
 
         return jdbcTemplate.query(sql, memberRowMapper());
     }

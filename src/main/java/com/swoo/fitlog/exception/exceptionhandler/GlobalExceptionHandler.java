@@ -2,6 +2,7 @@ package com.swoo.fitlog.exception.exceptionhandler;
 
 import com.swoo.fitlog.exception.ExpiredOtpException;
 import com.swoo.fitlog.exception.ExpiredPasswordException;
+import com.swoo.fitlog.exception.NoMatchPasswordException;
 import com.swoo.fitlog.http.ErrorResponse;
 import com.swoo.fitlog.utils.ErrorCodeUtil;
 import lombok.RequiredArgsConstructor;
@@ -75,6 +76,25 @@ public class GlobalExceptionHandler {
                 HttpStatus.BAD_REQUEST,
                 "예기치 않은 오류가 발생했습니다.",
                 Set.of(ErrorCodeUtil.PASSWORD_EXPIRED_TIME.getErrorCode())
+        );
+
+        return new ResponseEntity<>(errorResponse, errorResponse.getHttpStatus());
+    }
+
+    /**
+     * 비밀번호가 틀린 경우 발생한 예외를 처리한다.
+     * @param exception 틀린 비밀번호로 로그인을 요청하여 발생한 예외
+     * @return 에러코드 22
+     */
+    @ExceptionHandler(NoMatchPasswordException.class)
+    public ResponseEntity<ErrorResponse> NoMatchPasswordException(NoMatchPasswordException exception) {
+        log.error("[ERROR][NoMatchPasswordException][{}]", exception.getMessage());
+
+        ErrorResponse errorResponse = ErrorResponse.of(
+                401,
+                HttpStatus.UNAUTHORIZED,
+                "예기치 않은 오류가 발생했습니다.",
+                Set.of(ErrorCodeUtil.PASSWORD_FAIL_AUTH.getErrorCode())
         );
 
         return new ResponseEntity<>(errorResponse, errorResponse.getHttpStatus());
