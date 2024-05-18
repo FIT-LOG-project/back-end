@@ -3,8 +3,10 @@ package com.swoo.fitlog.api.domain.user.repository;
 import com.swoo.fitlog.api.domain.user.MemberStatus;
 import com.swoo.fitlog.api.domain.user.entity.Member;
 import com.swoo.fitlog.exception.DuplicatedEmailException;
+import com.swoo.fitlog.exception.DuplicatedNickname;
 import com.swoo.fitlog.exception.NotExistMemberException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.RowMapper;
@@ -80,7 +82,7 @@ public class JdbcMemberRepository implements MemberRepository {
     }
 
     @Override
-    public void update(Long id, Member updateMember) {
+    public void updatePassword(Long id, Member updateMember) {
         String sql = "update members set password=:password where id=:id";
 
         log.info(updateMember.getPassword());
@@ -90,6 +92,32 @@ public class JdbcMemberRepository implements MemberRepository {
                 .addValue("id", id);
 
         jdbcTemplate.update(sql, param);
+    }
+
+    @Override
+    public void updateNickname(String email, String nickname) {
+        String sql = "update members set nickname=:nickname where email=:email";
+
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("nickname", nickname)
+                .addValue("email", email);
+
+        try {
+            jdbcTemplate.update(sql, params);
+        } catch (DuplicateKeyException e) {
+            throw new DuplicatedNickname("중복된 닉네임 요청");
+        }
+    }
+
+    @Override
+    public void updateStatus(String email, MemberStatus memberStatus) {
+        String sql = "update members set status=:status where email=:email";
+
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("status", memberStatus.name())
+                .addValue("email", email);
+
+        jdbcTemplate.update(sql, params);
     }
 
     @Override
@@ -112,6 +140,8 @@ public class JdbcMemberRepository implements MemberRepository {
             throw new DuplicatedEmailException("이미 존재하는 이메일을 요청하였습니다");
         }
     }
+
+
 
     private RowMapper<Member> memberRowMapper() {
         return BeanPropertyRowMapper.newInstance(Member.class);

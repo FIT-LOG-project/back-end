@@ -1,5 +1,6 @@
 package com.swoo.fitlog.api.domain.user.repository;
 
+import com.swoo.fitlog.api.domain.user.MemberStatus;
 import com.swoo.fitlog.api.domain.user.entity.Member;
 import com.swoo.fitlog.exception.DuplicatedEmailException;
 import com.swoo.fitlog.exception.NotExistMemberException;
@@ -118,7 +119,7 @@ class JdbcMemberRepositoryTest {
 
     @Test
     @DisplayName("비밀 번호 변경 성공")
-    void update() {
+    void updatePassword() {
         // given
         String email = "test@example.com";
         String password = "123456";
@@ -136,7 +137,7 @@ class JdbcMemberRepositoryTest {
                 .password("654321")
                 .build();
 
-        jdbcMemberRepository.update(saveMember.getId(), updateMember);
+        jdbcMemberRepository.updatePassword(saveMember.getId(), updateMember);
 
         // then
         Member findMember = jdbcMemberRepository.findById(saveMember.getId());
@@ -163,5 +164,50 @@ class JdbcMemberRepositoryTest {
 
         jdbcMemberRepository.deleteById(saveMember.getId());
         assertThrows(NotExistMemberException.class, () -> jdbcMemberRepository.findById(saveMember.getId()));
+    }
+
+    @Test
+    @DisplayName("닉네임 변경")
+    void updateNickname() {
+        // given
+        String email = "test@example.com";
+        String password = "123456";
+
+        Member member = Member.builder()
+                .email(email)
+                .password(password)
+                .build();
+
+        jdbcMemberRepository.save(member);
+
+        // when
+        jdbcMemberRepository.updateNickname(email, "홍길동");
+
+        // then
+        Member findMember = jdbcMemberRepository.findByEmail(email);
+        assertThat(findMember.getNickname()).isEqualTo("홍길동");
+    }
+
+    @Test
+    @DisplayName("회원 상태 변경")
+    void updateStatus() {
+        // given
+        String email = "test@example.com";
+        String password = "123456";
+
+        Member member = Member.builder()
+                .email(email)
+                .password(password)
+                .status(MemberStatus.NEW)
+                .build();
+
+        jdbcMemberRepository.save(member);
+
+        // when
+        jdbcMemberRepository.updateStatus(email, MemberStatus.NORMAL);
+
+        // then
+        Member findMember = jdbcMemberRepository.findByEmail(email);
+        assertThat(findMember.getStatus()).isEqualTo(MemberStatus.NORMAL);
     }
 }

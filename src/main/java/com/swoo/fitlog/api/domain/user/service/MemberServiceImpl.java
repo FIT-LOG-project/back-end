@@ -29,7 +29,7 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
-    public void update(Long id, PasswordVerifyDto updateMember) {
+    public void updatePassword(Long id, PasswordVerifyDto updateMember) {
         Member member = updateMember.toEntity();
 
         String password = member.getPassword();
@@ -37,7 +37,17 @@ public class MemberServiceImpl implements MemberService {
 
         member.setStatus(MemberStatus.NEW);
 
-        memberRepository.update(id, member);
+        memberRepository.updatePassword(id, member);
+    }
+
+    @Override
+    public void updateNickname(String email, String nickname) {
+        memberRepository.updateNickname(email, nickname);
+    }
+
+    @Override
+    public void updateStatus(String email, MemberStatus status) {
+        memberRepository.updateStatus(email, status);
     }
 
     @Override
