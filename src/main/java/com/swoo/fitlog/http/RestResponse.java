@@ -12,10 +12,19 @@ public class RestResponse<T>{
     private String message;
     private T data;
 
-    public static RestResponse<Object> of(int code, HttpStatus httpStatus, String message, Object data) {
-        return RestResponse.builder()
+    public static <T> RestResponse<T> of(int code, HttpStatus httpStatus, String message, T data) {
+        return RestResponse.<T>builder()
                 .code(code)
                 .httpStatus(httpStatus)
+                .message(message)
+                .data(data)
+                .build();
+    }
+
+    public static <T> RestResponse<T> ok(String message, T data) {
+        return RestResponse.<T>builder()
+                .code(200)
+                .httpStatus(HttpStatus.OK)
                 .message(message)
                 .data(data)
                 .build();
